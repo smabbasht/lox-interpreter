@@ -1,4 +1,6 @@
-## Chapter 2 - A Map of the Territory
+# Chapter 2 - A Map of the Territory
+
+## The parts of a language
 
 ### Scanning
 - The first step is `scanning`, also known as `lexing`, or  `lexical analysis`.
@@ -65,8 +67,8 @@
   architecture.
 - To get around this, Wirth and Richards from BCPL & Pascal made their
   compilers produce (hypothetical, idealized) virtual machine code instead of
-  instructions for some real chip. Wirth caled p-code (portable) which we now
-  say `bytecode` since each instruction is usually just a byte long.
+  instructions for some real chip. Wirth called it p-code (portable) which we
+  now say `bytecode` since each instruction is usually just a byte long.
 
 ### Virtual Machine
 - A compiler that produces output must also translate it to machine code since
@@ -77,8 +79,76 @@
   bytecode in a VM is slower than translating it to native code ahead of time
   because every instruction must be simulated at runtime each time it executes
   but you get simplicity and portability in return.
-    
 
+### Runtime
+- We now have a form of user's program that we can execute. The last step is
+  running it. If we compiled it to machine code, we simply tell the operating
+  system to load the executable and off it goes. If we compiled it to bytecode,
+  we need to start up the VM and load the program into that.
+- In both cases, for all but the basest of low level language, we usually need
+  some services like garbage collection that our language provides.
+- All of this stuff goes at `runtime` so it is appropriately named that.
+- In a fully compiled language like `rust` or `go`, the code implementing
+  runtime gets inserted into resulting executable whereas languages running
+  inside an interpreter have their runtime in VM.
 
+## Shortcuts & Alternate Routes
+This was the long route, there are other routes too, for e.gets
 
-1. If we choose real machine code than 
+### Single-pass compiler
+- Single pass compilers interleave parsing, analysis and code generation so
+  that output code can be produced in the parser directly, this also means that
+  the language doesn't have to allocate an IR, and syntax trees.
+- But this restrict the design of the language, you have no intermediate data
+  structures to store global info about the program and you don't revisit any
+  part so you must have every bit of information needed to compile before
+  receiving any expression.
+- C and Pascal were designed with this limitation, hence you can't call a
+  function in C before defining that because in the early days memory was so
+  precious and sometimes the whole source file couldn't be loaded in memory at
+  once.
+
+### Tree-walk Interpreters
+- Some interpreters begin executing the program right after parsing it to an
+  AST, To run the program, they traverse the syntax tree, one branch and a leaf
+  at a time evaluating each node as it goes.
+- This implementation tends to be slow.
+
+### Transpilers
+- If you write a front-end of your language and in the back-end, instead of
+  writing the complete back-end yourself, you convert your source code into
+  some string that is a valid source code of some other language, This way you
+  escape the route off mountain, getting something you can execute. This is
+  called source-to-source compiler, trans-compiler or transpiler.
+- If the new language is just a skin over the target language then just the
+  scanner and parser would suffice the front-end of the new language but if the
+  two are semantically different then analysis and even optimization could be
+  involved.
+
+### Just-in-time Compilation
+- This last one is less of a shortcut and more of an option reserved for
+  experts. As we know that the fastest running executable is one that is in
+  machine code right? So on the end user's machine when the program is loaded,
+  you compile it to native code for the architecture their computer supports.
+  Naturally enough, this is called Just-in-time compilation or JIT (rhymes with
+  fit).
+- HotSpot JVM, Microsoft's Common Language Runtime (CLR), and most JS
+  interpreters do this. 
+- The most sophisticated JITs insert profiling hooks into generated code to see
+  which regions are most performance critical and what kind of data is flowing
+  through them , then over time, they'll automatically recompile those hot
+  spots with more advanced optimizations.
+
+## Compilers and Interpreters
+
+### What is the difference?
+- Compiling is an implementation technique that involves translating a source
+  language to some other—usually lower-level—form. When you generate bytecode
+  or machine code, you are compiling. When you transpile to another high-level
+  language, you are compiling too.
+- When we say a language implementation “is a compiler”, we mean it translates
+  source code to some other form but does not execute it. The user has to take
+  the resulting output and run it themselves.
+- Conversely, when we say an implementation “is an interpreter”, we mean it
+  takes in source code and executes it immediately. It runs programs “from
+  source”.
